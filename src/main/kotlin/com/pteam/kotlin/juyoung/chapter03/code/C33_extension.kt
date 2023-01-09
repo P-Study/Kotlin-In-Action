@@ -11,7 +11,7 @@ fun main() {
 
     val list = arrayListOf(1, 2, 3)
     println(list.joinToString2())
-    println(list.joinToString2(seperator = "; ", prefix = "(", postfix = ")"))
+    println(list.joinToString2(separator = "; ", prefix = "(", postfix = ")"))
     println(list.joinToString2(" "))
 
     println(listOf("a", "b", "c").join())

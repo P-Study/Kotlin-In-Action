@@ -17,7 +17,7 @@ fun main() {
     println(joinToString(list, ";", "(", ")"))
 
     // 이름 붙인 인자(자바에서는 사용 불가)
-    println(joinToString(list, seperator = " ", prefix = "", postfix = "."))
+    println(joinToString(list, separator = " ", prefix = "", postfix = "."))
 
     println(joinToString(list))
 

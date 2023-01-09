@@ -169,3 +169,149 @@ val String.lastChar: Char
 
 ## 3.4 컬렉션 처리: 가변 길이 인자, 중위 함수 호출, 라이브러리 지원
 
+### 가변 인자 함수
+
+코틀린에서는 다음과 같이 가변 함수를 만들 수 있다.
+```kotlin
+fun listOf<T>(vararg  values: T): List<T> { ... }
+
+val list = listOf(1, 2, 3, 4)
+```
+
+코틀린과 자바바의 가변 인수에 차이점이 있다. 자바는 배열을 그냥 넘겨도 되지만 코틀린에서는 배열을 명시적으로 풀어서 배열의 각 원소가 인자로 전달되게 해야한다.
+이때 *스프레드 연산자*를 활용하면 쉽게 처리할 수 있다.
+```kotlin
+fun main(args: Array<String>) {
+    val list = listOf("args: ", *args)
+}
+```
+
+### 중위 호출과 구조 분해 선언
+
+중위 호출과 구조 분해 선언을 이용하면 값의 쌍을 더 간결하게 정의하고 사용할 수 있다.
+
+중위 호출
+```kotlin
+infix fun Any.to(other: Any) = Pair(this, other)
+
+1.to("one") // 일반적인 방식으로 호출
+1 to "one" // 중위 호출 방식으로 호출
+```
+중위 호출은 인자가 하나뿐인 일반 메소드나 인자가 하나뿐인 확장 함수에서 사용할 수 있다. 그리고 중위 호출을 사용하고 싶으면 함수 앞에 infix 변경자를 추가해야 한다.
+
+중위 순회 & 구조 분해 선언
+```kotlin
+val (number, name) = 1 to "one"
+```
+중위 순회와 구조 분해를 이용하면 값의 쌍을 간결하게 만들고 사용할 수 있다.
+
+## 3.5 문자열과 정규식 다루기
+
+코틀린 문자열은 자바 문자열과 같다. 하지만 코틀린은 다양한 확장 함수를 제공해 더 다양한 기능과 혼동이 야기될 수 있는 일부 메소드에 대해 더 명확한 코틀린 확장 함수를 제공한다. 
+
+### 문자열 나누기
+
+코틀린에서는 자바의 split 대신에 여러 가지 다른 조합의 파라미터를 받는 split 확장 함수를 제공한다. 
+
+```kotlin
+println("12.345-6.1".split("\\.|-".toRegex())) // . or - 로 문자열을 분리한다.
+```
+
+### 정규식과 3중 따옴표로 묶은 문자열
+
+3중 따옴표 문자열을 사용하면 역슬래시를 포함한 어떤 문자도 이스케이프할 필요가 없다.
+
+```kotlin
+val regex = """(.+)/(.+)\.(.+)"""
+```
+
+### 여러 줄 3중 따옴표 문자열
+
+3중 따옴표를 쓰면 줄 바꿈이 들어있는 프로그램 텍스트를 쉽게 문자열로 만들 수 있다.
+
+```kotlin
+val kotlinLogo = """| //
+                   .| //
+                   .|/ \"""
+```
+
+## 3.6 코드 다듬기: 로컬 함수와 확장
+
+좋은 코드 중 중요한 특징 중 하나는 중복이 없는 코드다. (DRY : Don't Repeat Yourself)
+
+자바의 경우 DRY를 지키기 어렵다. 대부분의 경우 메소드 추출 리팩토링을 적용해 코드를 재활용한다. 하지만 그렇게 하면 클래스 안에 작은 메소드가 많아지고 이는 메소드 사이의 
+관계 파악이 어려워 가독성을 떨어트린다. 
+
+코틀린에서는 이에 대한 해결책으로 로컬 함수를 지원한다. 로컬 함수는 함수에서 추출한 함수를 원 함수 내부에 중첩시킬 수 있는 개념이다.
+
+ver1
+```kotlin
+class User(val id: Int, val name: String, val address: String)
+
+fun saveUser(user: User) {
+    if (user.name.isEmpty()) {
+        throw IllegalArgumentException(
+          "Can't save user ${user.id}: empty Name")
+    }
+  
+    if (user.address.isEmpty()) {
+        throw IllegalArgumentException(
+          "Can't save user ${user.id}: empty Address")
+    }
+  
+  // save user...
+}
+```
+
+위 코드는 검증 로직이 중복된다. Java 라면 private 메서드를 추출해 리팩토링 하겠지만, Kotlin에서는 로컬 함수를 이용해 중복 제거가 가능한다.
+
+ver2
+```kotlin
+class User(val id: Int, val name: String, val address: String)
+
+fun saveUser(user: User) {
+    fun validate(value: String, fieldName: String) {
+        if (value.isEmpty()) {
+            throw IllegalArgumentException(
+              "Can't save user ${user.id}: " + "empty ${fieldName}")
+        }
+    }
+    
+    validate(user.name, "Name")
+    validate(user.address, "Address")
+  
+    // save user ...
+}
+```
+로컬 함수는 자신이 속한 바깥 함수의 모든 파라미터의 변수를 사용할 수 있다. 
+
+검증 로직을 User 클래스를 확장한 함수로 만들 수도 있다. 이 경우 User는 자신의 코드 기반에 있는 클래스지만, 검증 로직은 User을 사용하는 다른 곳에서는 
+쓰이지 않기 때문에 굳이 User에 포함시킬 필요가 없다.
+
+ver3
+```kotlin
+class User(val id: Int, val name: String, val address: String)
+
+fun User.validateBeforeSave() {
+    fun validate(value: String, fieldName: String) {
+        if (value.isEmpty()) {
+          throw IllegalArgumentException(
+            "Can't save user ${id}: empty %{fieldName}"
+          )
+        }
+    }
+    
+    validate(name, "Name")
+    validate(address, "Address")
+}
+
+fun saveUser(user: User) {
+    user.validateBeforeSave()
+    
+    // save user ...
+}
+```
+
+추가로 확장 함수도 로컬 함수로 정의할 수 있다.
+
+Tip : 로컬 함수를 사용할 때 일반적으로 한 단계만 함수를 중첩시키기는걸 권장한다. 깊이가 깊어지면 가독성이 떨어지기 때문이다.

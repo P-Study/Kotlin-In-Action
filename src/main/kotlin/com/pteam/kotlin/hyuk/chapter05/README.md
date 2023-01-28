@@ -174,3 +174,86 @@ val p = Person("Dmitry", 34)
 val dmitrysAgeFunction = p::age
 ```
 - 맴버 참조를 생성할 때 클래스 인스턴스를 함께 저장한 다음 나중에 그 인스턴스에 대해 맴버를 호출해준다.
+
+## 5.2 컬렉션 함수형 API
+
+함수형 프로그래밍 스타일은 컬렉션을 다룰 때 유용하다. 대부분의 작업에 라이브러리 함수를 활용할 수 있고 그로 인해 코드를
+아주 간결하게 만들 수 있다.
+
+### 필수적인 함수: filter와 map
+
+filter와 map은 컬렉션을 활용할 때 기반이 되는 함수다. 대부분의 컬렉션 연산을 이 두 함수를 통해 표현할 수 있다.
+
+filter : 컬렉션을 이터레이션하면서 주어진 람다에 각 원소를 넘겨 람다가 true를 반환하는 원소만 모은다.
+map : 주어진 람다를 컬렉션의 각 원소에 적용한 결과를 모아서 새 컬렉션을 만든다.
+
+**example : 가장 나이 많은 사람의 이름 구하기**
+
+ver1
+```kotlin
+people.filter { it.age == people.maxBy(Person::age)!!.age}
+```
+- 문제점
+  - 목록에서 최댓값을 구하는 작업이 계속 반된다. (성능 저하)
+
+ver2 - 불필요한 연산 없애기
+```kotlin
+val maxAge = people.maxBy(Person::age)!!.age
+people.filter { it.age == maxAge }
+```
+- Tip
+  - 람다를 인자로 받는 함수에 람다를 넘기면 겉으로 볼 때는 단순해 보이는 식이 내부 로직의 복잡도로 인해 실제로는 엄청나게 불합리한 계산식이 될 때가 있다.
+
+### all, any, count, find: 컬렉션에 술어 적용
+
+all : 컬렉션의 모든 원소가 특정 조건을 만족하는지 판단
+```kotlin
+val canBeInClub27 = { p: Person -> p.age <= 27 }
+
+peope.all(canBeInClub27)
+```
+
+any : 컬렉션의 특정 조건을 만족하는 원소가 하나라도 있는지 판단
+```kotlin
+people.any(canBeInClub27)
+```
+- Tip
+  - 가독성을 높이려면 any와 all 앞에 !를 붙이지 않는 편이 낫다.
+
+count : 술어를 만족하는 원소의 개수 구하기
+```kotlin
+people.filter(canBeInClub27).count
+```
+- Tip
+  - count가 있다는 사실을 잊고 컬렉션을 필터링한 결과의 크기를 가져오면 중간 컬렉션이 생겨 성능이 불필요한 연산을 하게 된다.
+
+find : 술어를 만족하는 원소를 하나 찾기
+```kotlin
+people.find(canBeInClub27)
+```
+
+### groupBy: 리스트를 여러 그룹으로 이뤄진 맵으로 변경
+
+```kotlin
+val list = listOf("a", "ab", "b")
+println(list.groupBy(String::first))
+// output = {a=[a, ab], b=[b]}
+```
+연산의 결과는 컬렉션의 원소를 구분하는 특성이 키이고, 키 값에 따른 각 그룹이 값인 맵이다.
+
+### flatMap과 flatten: 중첩된 컬렉션 안의 원소 처리
+
+flatMap : 인자로 주어진 람다를 컬렉션의 모든 객체에 적용하고 람다를 적용한 결과 얻어지는 여러 리스트를 한 리스트로 한데 모은다.
+```kotlin
+val strings = listOf("abc", "def")
+println(strings.flatMap { it.toList() })
+// output = [a, b, c, d, e, f]
+```
+
+특별히 반환해야 할 내용이 없다면 flatten을 사용할 수 있다.
+```kotlin
+listOfLists.flatten()
+```
+
+- Tip
+  - 컬렉션을 다루는 코드를 작성할 경우에는 원하는 바를 어떻게 일반적인 변환을 사용해 표현할 수 있는지 생각해보고 그런 변환을 제공하는 라이브러리 함수가 있는지 살펴보라

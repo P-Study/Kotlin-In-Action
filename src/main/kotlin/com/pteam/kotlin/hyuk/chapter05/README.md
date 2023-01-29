@@ -274,7 +274,7 @@ people.asSequence()
   .filter { it.startsWith("A") }
   .toList()
 ```
-- 중간 결과를 저장하는 컬렉션이 생기지 않아 원소가 많은 경우 성능이 많이 좋아진다.
+- 중간 결과를 저장하는 컬렉션이 생기지 않아 원소가 많은 경우 성능이 좋아진다.
 
 시퀀스의 원소는 필요할 때 비로소 계산된다. 즉, 중간 처리 결과를 저장하지 않고도 연산을 연쇄적으로 적용해 효율적으로 계산할 수 있다.
 
@@ -327,7 +327,7 @@ fun File.isInsideHiddenDirectory() =
 
 ### 자바 메소드에 람다를 인자로 전달
 
-코틀린에서 함수형 인터페이스를 인자로 취하는 자바 메소드에 람다를 넘기면 컴파일러가 자동으로 람다를 인스턴스로 변환해준다.
+코틀린에서 함수형 인터페이스를 인자로 취하는 자바 메소드에 람다를 넘기면 컴파일러가 자동으로 람다를 함수형 인터페이스를 구현한 무명 클래스의 인스턴스로 변환해준다.
 
 - 주의
   - 무명 객체 vs 람다
@@ -347,7 +347,7 @@ void postponeComputation(int delay, Runnable computation)
 postponeComputation(1000) { println(42) }
 
 // 실제 컴파일러가 만들어주는 코드
-val runnable = Runnable { print(42) } // SAM 생성자
+val runnable = Runnable { print(42) } // SAM 생성자 (재사용할 함수형 인터페이스용 인스턴스)
 fun handleComputation() {
     postponeComputation(1000, runnable) // 모든 handleComputation 호출에 같은 객체를 사용한다.
 }

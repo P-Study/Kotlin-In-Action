@@ -366,3 +366,8 @@ fun createAllDoneRunnable(): Runnable {
     return Runnable { println("All done!") }
 }
 ```
+
+## Sample Code 작성해보고 싶은 것
+- 시퀀스 이용해 성능 계선 테스트
+- 컬렉션 API 사용순서에 따라 성능 개선되는지 테스트
+- 람다를 함수형 인터페이스로 바꿀때 컴파일러가 바꿔주는 코드 확인

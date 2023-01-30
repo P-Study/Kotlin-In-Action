@@ -367,6 +367,74 @@ fun createAllDoneRunnable(): Runnable {
 }
 ```
 
+## 수신 객체 지정 람다: with와 apply
+
+코틀에서는 자바의 람다에는 없는 수신 객체 람다를 제공한다. 수신 객체 람다는 수신 객체를 명시하지 않고 람다의 본문 안에서 다른 객체의 메소드를 호출할 수 있게 해준다.
+
+### with 함수
+
+어떤 객체에 대해 다양한 연산을 수행하기 위해서는 객체의 이름을 반복해서 써야한다. 이는 코드 중복과 불변함을 가져온다.
+코틀린에서는 이런 문제를 `with` 라이브러리 함수를 통해 해결한다.
+
+Before with
+```kotlin
+fun alphabet(): String {
+    val result = StringBuilder()
+    for (letter in 'A'..'Z') {
+        result.append(letter)
+    }
+    result.append("\nNow I know the alphabet!")
+    return result.toString()
+}
+```
+- 문제점
+  - result를 반복해서 사용해야 한다. (코드가 더 길어진다면 더 자주 반복해야 할 것이다.)
+
+Using with
+```kotlin
+fun alphabet(): String {
+    val stringBuilder = StringBuilder()
+    return with(stringBuilder) {
+        for (letter in 'A'..'Z') {
+            this.append(letter) //this를 통해 수신 객체 메소드를 호출한다.
+        }
+        append("\nNow I know the alphabet!") // this를 생략할 수 있다.
+        this.toString()
+    }
+}
+```
+- with문은 실제로 파라미터가 2개 있는 함수다.
+- 일반 함수가 람다와 대응된다면 확장 함수가 수신 객체 지정 람다와 대응된다.
+
+### 5.5.2 apply 함수
+
+apply 함수는 거의 with와 같다. 유일한 차이란 apply는 항상 자신에게 전달된 객체를 반환한다.
+
+```kotlin
+fun alphabet() = StringBuilder().apply {
+    for (letter in 'A'..'Z') {
+        append(letter)
+    }
+    append("\nNow I know the alphabet!")
+}.toString()
+```
+- apply는 확장 함수로 정의돼 있다.
+- 객체의 일부를 만들면서 즉시 프로퍼티 중 일부를 초기화해야 하는 경우 유용하다. (Builder 역할)
+
+with와 apply는 수신 객체 람다를 사용하는 일반적인 예제다. 더 구체적인 함수를 비슷한 패턴으로 이용할 수도 있다.
+```kotlin
+fun alphabet() = buildString {
+    for (letter in 'A'..'Z') {
+        append(letter)
+    }
+    append("\nNow I know the alphabet!")
+}
+```
+- buildString의 인자는 수신 객체 지정 람다며, 수신 객체는 항상 StringBuilder이다.
+
+- Tip
+  - 수신 객체 지정 람다는 DSL을 만들 때 매우 유용한 도구다.
+
 ## Sample Code 작성해보고 싶은 것
 - 시퀀스 이용해 성능 계선 테스트
 - 컬렉션 API 사용순서에 따라 성능 개선되는지 테스트

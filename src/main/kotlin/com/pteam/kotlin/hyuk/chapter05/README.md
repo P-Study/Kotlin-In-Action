@@ -13,12 +13,12 @@
 
 무명 내부 객체 사용
 ```java
-button.setOnClickListner(new OnClickListner){
+button.setOnClickListner(new OnClickListner(){
     @Override
     public void onClick(View view){
 	    /* operation */
 	}
-}
+});
 ```
 
 람다 활용
@@ -151,7 +151,7 @@ run(::salute)
 val action = { person: Person, message: String -> 
   sendEmail(person, message)
 }
-val nextAction = ::snedEmail // 람다 대신 맴버 참조 사용
+val nextAction = ::sendEmail // 람다 대신 맴버 참조 사용
 ```
 
 생성자 참조
@@ -436,6 +436,8 @@ fun alphabet() = buildString {
   - 수신 객체 지정 람다는 DSL을 만들 때 매우 유용한 도구다.
 
 ## Sample Code 작성해보고 싶은 것
-- 시퀀스 이용해 성능 계선 테스트
+- 모든 람다 표현식 (버전별로)
 - 컬렉션 API 사용순서에 따라 성능 개선되는지 테스트
+- 시퀀스 이용해 성능 계선 테스트
 - 람다를 함수형 인터페이스로 바꿀때 컴파일러가 바꿔주는 코드 확인
+- buildString과 비슷한 계열의 API가 있는지 살펴보고 코드 짜보기

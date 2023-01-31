@@ -3,7 +3,7 @@ package com.pteam.kotlin.hyuk.chapter05.code
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
-class PerformanceTest() : StringSpec() {
+class CollectionApiPerformanceTest() : StringSpec() {
     init {
         "컬렉션 API 비효율적으로 사용" {
             val (ages, maxAge) = createAges()

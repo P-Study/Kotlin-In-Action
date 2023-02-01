@@ -232,11 +232,11 @@ find는 자바 스트림에서의 firstOrNull이라고 생각하시면 됩니다
 
 ```kotlin
 val people = listOf(
-								Person("Alice", 31),
-								...,
-								Person("Bob", 29),
-								Person("Carol", 31)
-						)
+        Person("Alice", 31),
+        ...,
+        Person("Bob", 29),
+        Person("Carol", 31)
+)
 println(people.groupBy { it.age })
 
 >>> (29=[Person(name=Bob, age=29}], 31=[Person(name=Alice, age=31), Person(name=Carol, age=31)]}

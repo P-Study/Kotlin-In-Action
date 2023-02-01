@@ -18,9 +18,9 @@ class SubscribingMember(val email: String) : Member {
     override val nickname: String
         get() = email.substringBefore('@')
 }
-class Facebook(val accountId: Int) : Member {
-    override val nickname: String = getFacebookName(accountId)
-}
+//class Facebook(val accountId: Int) : Member {
+//    override val nickname: String = getFacebookName(accountId)
+//}
 
 class LengthCounter {
     var counter: Int = 0

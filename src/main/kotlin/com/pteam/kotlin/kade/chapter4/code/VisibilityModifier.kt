@@ -18,12 +18,12 @@ internal open class TalkativeButton : Focusable {
  *
  * 'public' member exposes its 'internal' receiver type TalkativeButton
  */
-fun TalkativeButton.giveSpeech() {
-    // Cannot access 'yell': it is private in 'TalkativeButton'
-    yell()
-    // Cannot access 'whisper': it is protected in 'TalkativeButton'
-    whisper()
-}
+//fun TalkativeButton.giveSpeech() {
+//    // Cannot access 'yell': it is private in 'TalkativeButton'
+//    yell()
+//    // Cannot access 'whisper': it is protected in 'TalkativeButton'
+//    whisper()
+//}
 interface Focusable {
     fun setFocus(b: Boolean) = println("I ${if (b) "got" else "lost"} focus.")
     fun showOff() = println("I'm focusable!")

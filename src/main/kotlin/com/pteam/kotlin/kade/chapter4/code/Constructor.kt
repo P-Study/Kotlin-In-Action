@@ -12,7 +12,7 @@ class User(val nickname: String) // 주 생성자
  * 기반 클래스의 이름 뒤에는 꼭 빈 괄호가 들어간다
  * 인터페이스 이름 뒤에는 괄호가 없다
  */
-class RadioButton: Buttone()
+//class RadioButton: Buttone()
 
 /**
  * 인자에 대한 디폴트 값을 제공하기 위해 부 생성자를 여럿 만들지 말라.
@@ -22,10 +22,10 @@ class RadioButton: Buttone()
  */
 open class View {
     // 생성자를 통해 상위 클래스에게 객체 생성을 위임한다
-    constructor(ctx: Context) : super(ctx) {
-
-    }
-    constructor(ctx: Context, attr: AttributeSet) : super(ctx, attr) {
-
-    }
+//    constructor(ctx: Context) : super(ctx) {
+//
+//    }
+//    constructor(ctx: Context, attr: AttributeSet) : super(ctx, attr) {
+//
+//    }
 }

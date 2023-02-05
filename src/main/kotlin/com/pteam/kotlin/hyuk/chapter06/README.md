@@ -370,7 +370,7 @@ List<Int?> // 리스트 안의 각 값이 널이 될 수 있다.
 List<Int>? // 전체 리스트가 널이 될 수 있다.
 ```
 
-`filiterNotNull` 함수를 이용하면 널이 될 수 있는 값으로 이뤄진 컬렉션에서 널 값을 걸러낼 수 있다.
+`filterNotNull` 함수를 이용하면 널이 될 수 있는 값으로 이뤄진 컬렉션에서 널 값을 걸러낼 수 있다.
 ```kotlin
 fun addValidNumbers(numbers: List<Int?>) = val validNumbers = numbers.filterNotNull() // return type = List<Int>
 ```
@@ -381,7 +381,7 @@ fun addValidNumbers(numbers: List<Int?>) = val validNumbers = numbers.filterNotN
 분리했다는 점이다.
 
 `kotlin.collections.Collection` 인터페이스에서는 데이터를 읽는 여러 연산을 수행한다.
-`kotlin.collections.MutableCollection` 인터페이스에서는 데이터를 변경하는 메서드를 더 제공한다. 참고로 Collections 인터페이스를 확장한 인터페이스다.
+`kotlin.collections.MutableCollection` 인터페이스에서는 데이터를 변경하는 메서드를 더 제공한다. 참고로 Collection 인터페이스를 확장한 인터페이스다.
 
 코틀린에서 둘을 구분한 이유는 프로그램에서 데이터에 어떤 일이 벌어지는 더 쉽게 이해하기 위해서다.
 ```kotlin

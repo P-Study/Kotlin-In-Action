@@ -1,6 +1,6 @@
 package com.pteam.kotlin.juyoung.chapter04.code.c41
 
-internal open class TalkativeButton: Focusable {
+internal open class C41_TalkativeButton: C41_Focusable {
     private fun yell() = println("Hey!")
     protected fun whisper() = println("Let's talk!")
 }

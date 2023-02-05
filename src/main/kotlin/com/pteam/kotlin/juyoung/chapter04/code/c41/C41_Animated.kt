@@ -1,6 +1,6 @@
 package com.pteam.kotlin.juyoung.chapter04.code.c41
 
-abstract class Animated {
+abstract class C41_Animated {
     // 추상 멤버는 항상 열려있기 때문에 open 변경자를 명시할 필요 없음
     abstract fun animate()
 

@@ -1,6 +1,6 @@
 package com.pteam.kotlin.juyoung.chapter04.code.c41
 
-interface Clickable {
+interface C41_Clickable {
     fun click()
 
     // 디폴트로 구현 제공

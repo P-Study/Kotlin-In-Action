@@ -358,3 +358,132 @@ fun fail(message: String) : Nothing {
 ```
 
 Nothing 타입은 아무 값도 포함하지 않는다. 따라서 함수의 반환 타입이나 반환 타입으로 쓰일 타입 파라미터로만 쓸 수 있다.
+
+## 컬렉션과 배열
+
+### 널 가능성과 컬렉션
+
+컬렉션 안에 널 값을 넣을 수 있는지 여부는 중요하다.
+
+```kotlin
+List<Int?> // 리스트 안의 각 값이 널이 될 수 있다.
+List<Int>? // 전체 리스트가 널이 될 수 있다.
+```
+
+`filiterNotNull` 함수를 이용하면 널이 될 수 있는 값으로 이뤄진 컬렉션에서 널 값을 걸러낼 수 있다.
+```kotlin
+fun addValidNumbers(numbers: List<Int?>) = val validNumbers = numbers.filterNotNull() // return type = List<Int>
+```
+
+### 읽기 전용과 변경 가능한 컬렉션
+
+코틀린 컬렉션과 자바 컬렉션을 나누는 가장 중요한 특성 중 하나는 코틀린에서는 컬렉션안의 데이터에 접근하는 인터페이스와 컬렉션 안의 데이터를 변경하는 인터페이스를
+분리했다는 점이다.
+
+`kotlin.collections.Collection` 인터페이스에서는 데이터를 읽는 여러 연산을 수행한다.
+`kotlin.collections.MutableCollection` 인터페이스에서는 데이터를 변경하는 메서드를 더 제공한다. 참고로 Collections 인터페이스를 확장한 인터페이스다.
+
+코틀린에서 둘을 구분한 이유는 프로그램에서 데이터에 어떤 일이 벌어지는 더 쉽게 이해하기 위해서다.
+```kotlin
+fun <T> copyElements(source: Collection<T>, target: MutableCollection<T>) { // 데이터 변경을 쉽게 이해할 수 있다.
+    for (item in source) {
+        target.add(item)
+    }
+}
+```
+
+- Tip
+  - 가능하면 항상 읽기 전용 인터페이스를 사용해라.
+
+- 주의
+  - 읽기 전용 컬렉션이라고 꼭 변경 불가능한 컬렉션일 필요는 없다. 실제로 그 인스턴스는 어떤 컬렉션 인터페이스를 가리키는 수많은 참조 중 하나일 수 있다.
+    - 따라서 읽기 전용 컬렉션이 항상 스레드 안전하지 않다.
+
+### 코틀린 컬렉션과 자바
+
+모든 코틀린 컬렉션은 그에 상응하는 자바 컬렉션 인터페이스의 인스턴스다.
+
+코틀린의 읽기 전용과 변경 가능 인터페이스의 기본 구조는 `java.util` 패키지에 있는 자바 컬렉션의 인터페이스의 구조를 그대로 옮겨 놓았다.
+
+컬렉션 생성 함수
+
+| 컬렉션 타입 | 읽기 전용 타입 | 변경 가능 타입                                          |
+|--------|----------|---------------------------------------------------|
+| List   | listOf   | mutableListOf, arrayListOf                        |
+| Set    | setOf    | mutableSetOf, hashSetOf, linkedSetOf, sortedSetOf |
+| Map    | mapOf    | mutableMapOf, hashMapOf, linkedMapOf, sortedMapOf |
+
+- 주의
+  - 읽기 전용 타입도 내부에서는 변경 가능한 클래스다. 하지만 그 들이 변경 가능한 클래스라는 사실에 의존하면 안 된다.
+    - 미래에 setOf, mapOf가 진정한 불변 컬렉션 인스턴스를 반환하게 바뀔 수도 있다.
+
+- 자바 API에 컬렉션을 넘길때 조심해야할 것
+  - 자바는 읽기 전용 컬렉션과 변경 가능 컬렉션을 구분하지 않으므로, 코틀린에서 읽기 전용 컬렉션을 넘겨도 자바에서 컬렉션 객체 내용을 변경할 수 있다.
+    - 사용자가 자바 코드가 컬렉션을 변경할지 여부에 따라 올바른 파라미터 타입을 사용해야한다.
+  - 널이 아닌 원소로 이뤄진 컬렉션을 자바 메소드로 넘겨도 자바 메소드가 널을 넣을 수 있다.
+    - 사용자가 자바 코드가 널을 넣는지 판단해 알맞은 파라미터 타입을 사용해야 한다.
+
+### 컬렉션을 플랫폼 타입으로 다루기
+
+자바 쪽에서 선언한 컬렉션 타입의 변수를 코틀린에서는 플랫폼 타입으로 본다. 따라서 코틀린 코드는 그 타입을 읽기 전용 컬렉션이나 변경 가능한 컬렉션 어느 쪽으로든
+다를 수 있다.
+
+보통은 문제가 되지 않지만 컬렉션 타입이 시그니처에 들어간 자바 메서드 구현을 오버라이드 하는 경우 읽기 전용 컬렉션과 변경 가능 컬렉션의 차이는 문제가 된다.
+이는 사용자가 자바 컬렉션 타입을 어떤 코틀린 컬렉션 타입으로 표현할지 결정해야 한다.
+
+- 결정할 사항
+  - 컬렉션이 널이 될 수 있는가?
+  - 컬렉션의 원소가 널이 될 수 있는가?
+  - 오버라이드하는 메소드가 컬렉션을 변경할 수 있는가?
+
+```java
+/* Java */
+interface FileContentProcessor {
+	void processContents(File path, byte[] binaryContents, List<String> textContents);
+}
+```
+
+오버라이드된 메서드의 쓰임을 생각해 알맞은 타입을 선언해야 한다.
+```kotlin
+class FileIndexer : FileContentProcessor {
+    override fun processContenst(path: File, binaryContents: ByteArray?, textContents: List<String>?) {
+        /* ... */
+    }
+}
+```
+
+### 객체의 배열과 원시 타입의 배열
+
+기본적으로는 배열보다는 컬렉션을 더 먼저 사용하는게 좋지만 배열이 필요할 때도 있다.
+
+코틀린 배열은 타입 파라미터를 받는 클래스다.
+- 코틀린에서 배열을 만드는 방법
+  - arrayOf 함수 이용
+  - arrayOfNull : 인자로 정수 값을 넘기면 모든 원소가 null이고 인자가 넘긴 값과 크기가 같은 배열을 만들 수 있다.
+  - Array 생성자 : 배열 크기와 람다를 인자로 받아 람다를 호출해서 각 배열 원소를 초기화해준다.
+
+Array 생성자
+```kotlin
+val letters = Array<String>(26) { i -> ('a' + i).toString()} // 람다는 배열 원소의 인덱스를 인자로 받아 해당 위치에 들어갈 원소를 반환
+```
+
+컬렉션에서 배열로의 전환은 `toTypedArray` 메소드를 사용하면 쉽게 바꿀 수 있다.
+```kotlin
+val strings = listOf("a", "b", "c")
+println("%s/%s/%s".format(*strings.toTypedArray()))
+```
+
+박싱하지 않은 원시 타입의 배열이 필요하다면 그런 타입을 위한 특별한 배열 클래스를 사용하면 된다. 각 원시 타입마다 하나씩 존재한다. 
+ex) IntArray, ByteArray ...
+
+- 원시 타입 배열 만드는 방법
+  - 생성자 : size를 인자로 받아 해당 원시 타입의 디폴트 값으로 초기화된 size 크기의 배열을 반환한다.
+  - 팩토리 함수 : 여러 값을 가변 인자로 받아 그런 값이 들어간 배열을 반환한다.
+  - 생성자 : 크키가 람다를 인자로 받는 생성자
+
+박싱된 값이 들어있는 컬렉션이나 배열이 있다면 `toIntArray` 등의 변환 함수를 이용해 변환할 수 있다. 추가로 코틀린은 배열 기본 연산에 더해 컬렉션에
+사용할 수 있는 모든 확장 함수를 배열에도 제공한다. (다만 반환값이 배열이 아니라 컬렉션일 수 있다.)
+
+## Subject of Sample Code
+- using read only collection and editing that collections elements
+- using java API using collection in kotlin

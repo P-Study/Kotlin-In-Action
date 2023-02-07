@@ -487,4 +487,4 @@ ex) IntArray, ByteArray ...
 ## Subject of Sample Code
 - ~~using extend function when checking null~~
 - ~~using read only collection and editing that collections elements~~
-- using java API that has collection parameter in kotlin
+- ~~using java API that has collection parameter in kotlin~~

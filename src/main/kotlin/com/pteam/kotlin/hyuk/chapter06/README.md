@@ -485,5 +485,6 @@ ex) IntArray, ByteArray ...
 사용할 수 있는 모든 확장 함수를 배열에도 제공한다. (다만 반환값이 배열이 아니라 컬렉션일 수 있다.)
 
 ## Subject of Sample Code
+- ~~using extend function when checking null~~
 - using read only collection and editing that collections elements
 - using java API using collection in kotlin

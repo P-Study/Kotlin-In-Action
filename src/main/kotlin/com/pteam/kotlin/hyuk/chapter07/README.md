@@ -82,8 +82,42 @@ Point(x=-10, y=-20)
 - Tip
   - 증가/감소 연산자를 오버로딩하는 경우 컴파일러는 일반적인 값에 대한 전위와 후위 증가/감소 연산자와 같은 의미를 제공한다.
 
+## 7.2 비교 연산자 오버로딩
+
+`equals`나 `compareTo`를 호출해야 하는 자바와 달리 코틀린에서는 `==` 비교 연산자를 직접 사용할 수 있다.
+
+### 동등성 연산자: equals
+
+- `a == b`는 `a?.equals(b) ?: (b == null)`로 컴파일된다.
+  - 내부에서 인자가 널인지 검사하므로 다른 연산과 달리 널이 될 수 있는 값에도 적용할 수 있다.
+- `===`는 오버로딩할 수 없다.
+- `Any`에서 상속 받은 `equals`가 확장 함수보다 우선순위가 높기 때문에 `equals`를 확장 함수로 정의할 수 없다.
+
+### 순서 연산자: compareTo
+
+compareTo 메소드 구현
+```kotlin
+class Person(
+    val firstName: String, val lastName: String
+) : Comparable<Person> {
+    override fun compareTo(other: Person): Int {
+        return compareValueBy(this, other, Person::lastName, Person::firstName)
+    }
+}
+
+>>> val p1 = Person("Alice", "Smith")
+>>> val p2 = Person("Bob", "Johnson")
+>>> println(p1 < p2)
+false
+```
+- `a >= b`는 `a.compareTo(b) >= 0`으로 컴파일된다.
+- 코틀린도 자바와 같은 `Comparable` 인터페이스를 지원한다.
+  - 자바의 컬렉션 정렬 메소드 등에서 사용할 수 있다.
+- 코틀린 표준 라이브러리 `compareValuesBy` 함수를 사용해 `compareTo`를 쉽고 간결하게 정의할 수 있다.
+  - 필드를 직접 비교하면 코드는 조금 더 복잡해지지만 비교 속도는 훨씬 더 빨라진다. (처음에는 쉽고 간결한 코드를 작성하고 후에 성능을 개선하는게 좋다.)
+
     
 ## Sample Code Subject
 - 컬렉션 `+`,`-`와 `+=`, `-=` 차이 확인
-
+- `compareValuesBy` 함수와 필드 직접 비교 성능차이 테스트
 

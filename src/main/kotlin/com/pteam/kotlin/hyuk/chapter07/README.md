@@ -116,7 +116,66 @@ false
 - 코틀린 표준 라이브러리 `compareValuesBy` 함수를 사용해 `compareTo`를 쉽고 간결하게 정의할 수 있다.
   - 필드를 직접 비교하면 코드는 조금 더 복잡해지지만 비교 속도는 훨씬 더 빨라진다. (처음에는 쉽고 간결한 코드를 작성하고 후에 성능을 개선하는게 좋다.)
 
-    
+## 7.3 컬렉션과 범위에 대해 쓸 수 있는 관례
+
+코틀린에서는 인덱스 연산자(`a[b]`)를 사용해 원소를 설정하거나 가져올 수 있고, `in` 연산자를 사용해 원소나 컬렉션이 범위에 속하는지
+검사하거나 컬렉션에 있는 원소를 이터레이션할 수 있다.
+
+### 인덱스로 원소에 접근: get과 set
+
+get 관례 구현
+```kotlin
+operator fun Point.get(index: Int): Int {
+    return when(index) {
+        0 -> x
+        1 -> y
+        else -> throw IndexOutOfBoundsException("Invalid coordinate $index")
+    }
+}
+
+>>> val p = Point(10, 20)
+>>> println(p[1])
+20
+```
+- `x[a, b]`는 `x.get(a, b)`로 컴파일된다.
+- `get` 메소드의 파라미터로 `Int`가 아닌 타입도 사용할 수 있다. 예르 들어 맵은 키 타입을 사용한다.
+
+set 관례 구현
+```kotlin
+data class MutablePoint(var x: Int, var y: Int)
+
+operator fun MutablePoint.set(index: Int, value: Int) {
+    when(index) {
+        0 -> x = value
+        1 -> y = value
+        else -> throw IndexOutOfBoundsException("Invalid coordinate $index")
+    }
+}
+
+>>> val p = MutablePoint(10, 20)
+>>> p[1] = 42
+>>> print(p)
+MutablePoint(x=10, y=42)
+```
+- 'x[a, b] = c'는 `x.set(a, b, c)`로 컴파일된다.
+
+### in 관례
+
+`a in c`는 `c.contains(a)`로 컴파일된다.
+
+### rangeTo 관례
+
+`start..end`는 `start.rangeTo(end)`로 컴파일된다.
+
+- 어떤 클래스가 `Comparable` 인터페이스를 구현하면 `rangeTo`를 정의할 필요가 없다.
+  - 코틀린 표준 라이브러리에 모든 `Comparable` 객체에 대해 적용 가능한 `rangTo` 함수가 들어있다.
+- `rangeTo` 연산자는 다른 산술 연산자보다 우선순위가 낮다.
+
+### for 루프를 위한 iterator 관례
+
+`for (x in list) { ... }`는 `list.iterator()`를 호출해서 이터레이터를 얻은 다음, 이터레이터에 대해 `hasNext`와 `next`
+호출을 반복한다. 코틀린에서는 이또한 관례이다.
+
 ## Sample Code Subject
 - 컬렉션 `+`,`-`와 `+=`, `-=` 차이 확인
 - `compareValuesBy` 함수와 필드 직접 비교 성능차이 테스트

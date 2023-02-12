@@ -200,6 +200,213 @@ fun printEntires(map: Map<String, String>) {
   - 이터레이션 관례 (코틀린 표준 라이브러리는 멥에 대한 확장 함수로 `iterator`가 들어있다.)
   - 구조 분해 선언
 
+## 7.5 프로퍼티 접근자 로직 재활용: 위임 프로퍼티
+
+위임 프로퍼티를 사용하면 값을 뒷받침하는 필드에 단순히 저장하는 것보다 더 복잡한 방식으로 작동하는 프로퍼티를 쉽게 구현할 수 있다.
+
+### 위임 프로퍼티 소개
+
+```kotlin
+class Foo {
+    var p: Type by Delegate()
+}
+```
+- p 프로퍼티는 접근자 로직을 다른 객체에게 위임한다.
+  - 컴파일러는 숨겨진 도우미 프로퍼티를 만들고 그 프로퍼티를 위임 객체의 인스턴스로 초기화한다.
+
+```kotlin
+/* compiled code */
+class Foo {
+    private val delegate = Delegate()
+    var p : Type
+    set(value: Type) = delegate.setValue(..., value)
+    get() = delegate.getValue(...)        
+}
+```
+- 프로퍼티 위임 관례를 따르는 `Delegate` 클래스는 `getValue`와 `setValue` 메소드를 제공해야 한다.
+
+### 위임 프로퍼티 사용: by lazy()를 사용한 프로퍼티 초기화 지연
+
+지연 초기화 : 객체의 일부분을 초기화 하지 않고 남겨뒀다가 실제로 그 부분의 값이 필요한 경우 초기화할 때 흔히 쓰이는 패턴이다.
+
+지연 초기화 직접 구현
+```kotlin
+class Person(val name: String) {
+    private var _emails: List<Email>? = null
+    val email: List<Email>
+        get() {
+            if (_emails == null) {
+                _emails = loadEmail(this)
+            }
+          return _emails!!
+        }
+}
+```
+- Backing Property 기법을 사용한다.
+  - `_emails` 프로퍼티는 값을 저장하고 `emails`는 `_emails`라는 프로퍼티에 대한 읽기 연산을 제공한다.
+- 스레드 안전하지 않다.
+
+위임 프로퍼티 이용해 리펙토링
+```kotlin
+class Person(val name: String) {
+    val emails by lazy { loadEmails(this) }
+}
+```
+- `lazy` 함수는 코틀린 관례에 맞는 시그니처의 `getValue` 메소드가 들어있는 객체를 반환한다.
+- `lazy` 함수는 기본적으로 스레드 안전하다.
+
+### 위임 프로퍼티 구현
+
+위임 프로퍼티 구현 방식을 예제를 통해 확인해보자. 
+
+상황 : 객체의 프로퍼티가 바뀔 때마다 리스너에게 변경 통지를 보낸다.
+
+PropertyChangeSupport를 사용하기 위한 도우미 클래스
+```kotlin
+open class PropertyChangeAware {
+  protected val changeSupport = PropertyChangeSupport(this)
+  
+  fun addPropertyChangeListener(listener: PropertyChangeListener) {
+      changeSupport.addPropertyChangeListener(listener)
+  }
+  
+  fun removePropertyChangeListener(listener: PropertyChangeListener) {
+      changeSupport.removePropertyChangeListener(listener)
+  }
+}
+```
+
+프로퍼티 위임을 사용하는 Person 구현 (ver1)
+```kotlin
+class Person(
+  val name: String, age: Int, salary: Int
+) : PropertyChangeAware() {
+    var age: Int = age
+        set(newValue) {
+            val oldValue = field
+            field = newValue
+            changeSupport.fireProperyChange(
+              "age", oldValue, newValue
+            )
+        }
+    
+    var salary: Int = salary
+        set(newValue) {
+            val oldValue = field
+            field = newValue
+            changeSupport.firePropertyChange(
+              "salary", oldValue, newValue
+            )
+        }
+}
+```
+- 개선점
+  - 세터에 코드 중복이 많다.
+
+ver2 : 프로퍼티 값을 저장하고 필요에 따라 통지를 보내주는 클래스 추출
+```kotlin
+class ObservableProperty(
+  val propName: String, var propValue: Int,
+  val changeSupport: PropertyChangeSupport
+) {
+    fun getValue(): Int = propValue
+    fun setValue(newValue: Int) {
+        val oldValue = propValue
+        propValue = newValue
+        changeSupport.firePropertyChange(propName, oldValue, newValue)
+    }
+}
+
+class Person(
+  val name: String, age: Int, salary: Int
+) : PropertyChangeAware() {
+    val _age = ObservableProperty("age", age, changeSupport)
+    var age: Int
+        get() = _age.getValue()
+        set(value) { _age.setValue(value) }
+  
+    val _salary = ObservableProperty("salary", salary, changeSupport)
+    var salary: Int
+        get() = _salary.getValue()
+        set(value) { _salary.setValue(value) }
+}
+```
+- 코틀린의 위임이 실제로 동작하는 방식과 비슷하다.
+- 개선점
+  - 각각의 프로퍼티마다 ObservableProperty를 만들고 게터와 세터에서 ObservableProperty에 작업을 위임하는 준비 코드가 필요하다.
+
+ver3 : 코틀린 위임 프로퍼티 관례 사용
+```kotlin
+/* 관례에 맞게 수정 */
+class ObservableProperty(
+  val propValue: Int, val changeSupport: PropertyChangeSupport
+) {
+    operator fun getValue(p: Person, prop: KProperty<*>): Int = propValue
+    operator fun setValue(p: Person, prop: KProperty<*>, newValue: Int) {
+        val oldValue = propValue
+        propValue = newValue
+        changeSupport.firePropertyChange(prop.name, oldValue, newValue)
+    }
+}
+
+class Person(
+  val name: String, age: Int, salary: Int
+) : PropertyChangeAware() {
+    var age: Int by ObservableProperty(age, changeSupport)
+    var salary: Int by ObservableProperty(salary, changeSupport)
+}
+```
+
+### 위임 프로퍼티 컴파일 규치
+
+```kotlin
+class C {
+    var prop: Type by MyDelegate()
+}
+
+/* compiled code */
+class C {
+    private val <delegate> = MyDelegate()
+    var prop: Type
+    get() = <delegate>.getValue(this, <property>)
+    set(value: Type) = <delegate>.setValue(this, <property>, value)        
+}
+```
+
+### 프로퍼티 값을 맵에 저장
+
+자신의 프로퍼티를 동적으로 정의할 수 있는 객체를 만들 때 위임 프로퍼티를 활용하는 경우가 자주 있다.
+
+```kotlin
+class Person {
+    private val _attributes = hashMapOf<String, String>()
+    fun setAttribute(attrName: String, value: String) {
+        _attributes[attrName] = value
+    }
+    
+    val name: String by _attributes // 표준 라이브러리가 Map과 MutableMap 인터페이스에 대해 getValue, setValue 확장함수를 제공한다. 
+}
+```
+
+### 프레임워크에서 위임 프로퍼티 사용
+
+위임 프로퍼티를 사용하면 객체 프로퍼티를 저장하거나 변경하는 방법을 바꿀 수 있고, 이는 프레임워크를 개발할 때 유용하다.
+
+```kotlin
+object Users : IdTable() { // 데이터베이스 테이블에 해당한다.
+    val name = varchar("name", length=50).index() // 칼럼에 해당한다.
+    val age = integer("age") //칼럼에 해당하낟.
+}
+
+operator fun<T> Column<T>.getValue(o: Entity, desc: KProperty<*>): T { ... }
+operator fun<T> Column<T>.setValue(o: Entity, desc: KProperty<*>, value: T) { ... }
+
+class User(id: EntityID) : Entity(id) {
+    var name: String by Users.name
+    var age: Int by Users.age
+}
+```
+
 ## Sample Code Subject
 - 컬렉션 `+`,`-`와 `+=`, `-=` 차이 확인
 - `compareValuesBy` 함수와 필드 직접 비교 성능차이 테스트

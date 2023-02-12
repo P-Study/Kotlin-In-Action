@@ -176,6 +176,30 @@ MutablePoint(x=10, y=42)
 `for (x in list) { ... }`는 `list.iterator()`를 호출해서 이터레이터를 얻은 다음, 이터레이터에 대해 `hasNext`와 `next`
 호출을 반복한다. 코틀린에서는 이또한 관례이다.
 
+## 7.4 구조 분해 선언과 component 함수
+
+구조 분해를 사용하면 복합적인 값을 분해해서 여러 다른 변수를 한꺼번에 초기화할 수 있다.
+
+`val (a, b) = p`는 `val a = p.component1()` `val b = p.component2()`로 컴파일된다.
+
+- Tip
+  - 배열이나 컬렉션에도 componentN 함수가 있다.
+    - 단, 맨 앞의 다섯 원소에 대해서만 존재한다.
+
+### 구조 분해 선언과 루프
+
+맵의 원소에 대해 이터레이션할 때 구조 분해 선언이 유용한다.
+```kotlin
+fun printEntires(map: Map<String, String>) {
+    for ((key, value) in map) {
+        println("$key -> $value")
+    }
+}
+```
+- 두 가지 관례를 사용한다.
+  - 이터레이션 관례 (코틀린 표준 라이브러리는 멥에 대한 확장 함수로 `iterator`가 들어있다.)
+  - 구조 분해 선언
+
 ## Sample Code Subject
 - 컬렉션 `+`,`-`와 `+=`, `-=` 차이 확인
 - `compareValuesBy` 함수와 필드 직접 비교 성능차이 테스트

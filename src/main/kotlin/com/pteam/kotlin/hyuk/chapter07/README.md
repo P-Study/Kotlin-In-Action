@@ -138,7 +138,7 @@ operator fun Point.get(index: Int): Int {
 20
 ```
 - `x[a, b]`는 `x.get(a, b)`로 컴파일된다.
-- `get` 메소드의 파라미터로 `Int`가 아닌 타입도 사용할 수 있다. 예르 들어 맵은 키 타입을 사용한다.
+- `get` 메소드의 파라미터로 `Int`가 아닌 타입도 사용할 수 있다. 예를 들어 맵은 키 타입을 사용한다.
 
 set 관례 구현
 ```kotlin
@@ -333,7 +333,7 @@ class Person(
 ```
 - 코틀린의 위임이 실제로 동작하는 방식과 비슷하다.
 - 개선점
-  - 각각의 프로퍼티마다 ObservableProperty를 만들고 게터와 세터에서 ObservableProperty에 작업을 위임하는 준비 코드가 필요하다.
+  - 각각의 프로퍼티마다 `ObservableProperty`를 만들고 게터와 세터에서 `ObservableProperty`에 작업을 위임하는 준비 코드가 필요하다.
 
 ver3 : 코틀린 위임 프로퍼티 관례 사용
 ```kotlin
@@ -357,7 +357,7 @@ class Person(
 }
 ```
 
-### 위임 프로퍼티 컴파일 규치
+### 위임 프로퍼티 컴파일 규칙
 
 ```kotlin
 class C {

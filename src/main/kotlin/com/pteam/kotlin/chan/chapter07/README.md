@@ -109,3 +109,21 @@ Set 관례는 위와 같이 구현할 수 있습니다.
 이런식으로 맵의 원소에 대해 이터레이션할 때도 유용하게 쓸 수 있습니다.
 
 ## 프로퍼티 접근자 로직 재활용: 위임 프로퍼티
+
+![https://user-images.githubusercontent.com/58816862/218990987-9eca9335-ad01-4538-b64e-fcbbd8c736c5.png](https://user-images.githubusercontent.com/58816862/218990987-9eca9335-ad01-4538-b64e-fcbbd8c736c5.png)
+
+위임 프로퍼티는 일반적으로 위와 같은 문법으로 사용됩니다.
+
+![https://user-images.githubusercontent.com/58816862/218991408-93be5e0f-7bb0-4e1d-aa5a-28b48e4e4f53.png](https://user-images.githubusercontent.com/58816862/218991408-93be5e0f-7bb0-4e1d-aa5a-28b48e4e4f53.png)
+
+그리고 위와 같이 사용할 수 있습니다.
+
+간단한 예시를 통해서 위임 프로퍼티의 기능인 지연 초기화를 해보도록 하겠습니다.
+
+![https://user-images.githubusercontent.com/58816862/218990223-14fe0335-2d67-4037-b18f-c24525546d08.png](https://user-images.githubusercontent.com/58816862/218990223-14fe0335-2d67-4037-b18f-c24525546d08.png)
+
+위임 프로퍼티는 위와 같이 지연 초기화를 할 수 있습니다.
+
+![https://user-images.githubusercontent.com/58816862/218990343-647c010e-d6ea-49fc-b900-6051eac3c3f7.png](https://user-images.githubusercontent.com/58816862/218990343-647c010e-d6ea-49fc-b900-6051eac3c3f7.png)
+
+그리고 by lazy()를 사용하여 위와 같이 간소화할 수 있습니다.

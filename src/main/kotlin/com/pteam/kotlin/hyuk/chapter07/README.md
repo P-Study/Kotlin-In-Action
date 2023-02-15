@@ -408,6 +408,6 @@ class User(id: EntityID) : Entity(id) {
 ```
 
 ## Sample Code Subject
-- 컬렉션 `+`,`-`와 `+=`, `-=` 차이 확인
+- ~~컬렉션 `+`,`-`와 `+=`, `-=` 차이 확인~~
 - `compareValuesBy` 함수와 필드 직접 비교 성능차이 테스트
 

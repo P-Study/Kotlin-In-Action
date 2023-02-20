@@ -235,6 +235,67 @@ fun readFirstLineFormFile(path: String): String {
 - `use` 함수는 닥을 수 있는 자원에 대한 확장 함수며, 람다를 인자로 받는다.
 - 인라인 함수다.
 
+## 8.3 고차 함수 안에서 흐름 제어
+
+### 람다 안의 return문: 람다를 둘러싼 함수로부터 반환
+
+non-local return : 자신을 둘러싸고 있는 블록보다 더 바깥에 있는 다른 블록을 반환하게 만드는 `return`문
+```kotlin
+fun lookForAlice(people: List<Person>) {
+    people.forEach {
+        if (it.name == "Alice") {
+            println("Found!")
+            return // non-local return문이다. 즉, lookForAlice 함수에서 반환된다.
+        }
+    }
+    println("Alice is not found")
+}
+```
+- `return`이 바깥쪽 함수를 반환시킬 수 있는 때는 람다를 인자로 받는 함수가 인라인 함수인 경우뿐이다.
+  - Why?
+    - 인라이닝 되지 않은 함수는 람다를 변수에 저장할 수 있고, 바깥쪽 함수로부터 반환된 뒤에 저장해 둔 람다가 호출될 수 있다.
+
+### 람다로부터 반환: 레이블을 사용한 return
+
+local return : 람다의 실행을 끝내고 람다를 호출했던 코드의 실행을 이어간다. `local return`과 `non-local return`을 구분하기 위해 레이블을 사용해야 한다.
+
+레이블은 람다에 또는 인라인 함수의 이름을 사용할 수 있다. 단, 람다 식의 레이블을 명시하면 함수 이름을 레이블로 사용할 수 없다.
+
+람다 레이블
+```kotlin
+fun lookForAlice(people: List<Person>) {
+    people.forEach label@{
+        if (it.name == "Alice") return@label
+    }
+    println("Alice might be somewhere")
+}
+```
+
+함수 이름 레이블
+```kotlin
+fun lookForAlice(people.List<Person>) {
+    people.forEach {
+        if (it.name == "Alice") return@forEach
+    }
+    println("Alice might be somewhere")
+}
+```
+
+### 무명 함수: 기본적으로 로컬 return
+
+무명 함수 : 코드 블록을 함수에 넘길 때 사용할 수 있는 다른 방법. 람다 식에 대한 문법적 편의
+
+```kotlin
+fun lookForAlice(people: List<Person>) {
+    people.forEach(fun (person) {
+        if (person.name == "Alice") return
+        println("${person.name} is not Alice")
+    })
+}
+```
+- 무명 함수는 함수의 이름이나 파라미터 타입을 생략할 수 있다.
+- 무명 함수 안에서 레이블이 붙지 않은 `return` 식은 무명 함수 자체를 반환시킨다.
+
 ## Sample Code Subject
 - using IntelliJ IDEA smart stepping
 - doing performance test using inline modifier

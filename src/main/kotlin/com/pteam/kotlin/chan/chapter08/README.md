@@ -146,3 +146,71 @@ fun<T> Collection<T>.joinToString(
     
     Shipping costs 12.3
     ```
+## 인라인 함수
+
+- inline 변경자를 어떤 함수에 붙이면 컴파일러는 그 함수를 호출하는 모든 문장을 함수 본문에 해당하는 바이트코드로 바꿔치기 함
+
+### 인라이님이 작동하는 방식
+
+- 어떤 함수를 inline으로 선언하면 그 함수의 본문이 인라인이 됨
+- 함수를 호출히는 코드를 힘수를 호출하는 바이트코드 대신에 함수 본문을 번역한 바이트 코드로 컴파일한다는 뜻임
+
+```kotlin
+inline fun<T> synchronized(
+	lock: Lock, 
+	action: () -> T,
+): T {
+    lock.lock()
+    try {
+        return action()
+    }
+    finally {
+        lock.unlock()
+    }
+****}
+```
+
+- 자바의 synchronized 똑같아 보이지만, 아무 타입의 객체를 인자로 받을 수 있음
+
+```kotlin
+fun foo(l : Lock) {
+    println("Before sync")
+    synchronized(l) {
+        println("Action")
+    }
+    println("After sync")
+}
+```
+
+- 위처럼 사용 가능
+
+### 인라인 함수의 한계
+
+- 람다를 사용하는 모든 함수를 인라이닝할 수는 없음
+- 함수 본문에서 파라미터로 받은 람다를 호출하는 경우는 가능함
+- 파라미 터로 받은 람다를 다른 변수에 저장하고 나중에 그 변수를 시용하는 경우에는 불가능
+
+### 컬렉션 연산 인라이닝
+
+- 코틀린 표준 라이 브러리의 컬렉션 함수는 대부분 람다를 인자로 받음
+- 시퀀스는 람다를 인라인 하지 않음
+
+### 함수를 인라인으로 선언해야 하는 경우
+
+- 인라인 남용 금지
+- 인라인 키워드는 람다를 인자로 받는 함수에 한해서 성능이 좋음
+
+### 자원 관리를 위해 인라인된 람다 사용
+
+- 코틀린은 자바의 try-with-resource 구문을 제공하지 않음
+- 대신, 함수 타입의 값을 파라미터로 받는 표준 라이브러리를 제공함
+
+```kotlin
+fun readFirstLineFormFile(
+	path: String
+): String {
+    BufferReader(FileReader(path)).use { br -> 
+      return br.readLine()
+    }
+}
+```

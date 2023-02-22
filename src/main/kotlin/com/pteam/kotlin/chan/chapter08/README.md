@@ -214,3 +214,55 @@ fun readFirstLineFormFile(
     }
 }
 ```
+### 람다 안의 return문: 람다를 둘러싼 함수로부터 반환
+
+```kotlin
+fun lookForAlice(people: List<Person>) {
+	people.forEach {
+		if (it.name == "Alice") {
+			println ("Found1")
+			return
+		}
+	}
+	println ("Alice is not found")
+}
+```
+
+- 람다 안에서 return을 사용하면 람다로부터만 반환되는게 아니라 그 람다를 호출하는 함수가 실행을 끝내고 반환됨
+- 자신을 둘러싸고 있는 블록보다 더 바깥에 있는 다른 블록을 반환하게 만듦
+- 다른 말로, non-local return이라 함
+
+### 람다로부터 반환: 레이블을 사용한 return
+
+- 람다에서도 local return을 할 수 있음
+
+```kotlin
+fun lookForAlice(people: List<Person>) {
+    people.forEach label@{
+        if (it.name == "Alice") return@label
+    }
+    println("Alice might be somewhere")
+}
+```
+
+```kotlin
+fun lookForAlice(people: List<Person>) {
+    people.forEach {
+        if (it.name == "Alice") return@forEach
+    }
+    println("Alice might be somewhere")
+}
+```
+
+### 무명 함수: 기본적으로 로컬 return
+
+- 무명 함수는 코드 블록을 함수에 넘길 때 사용할 수 있는 다른 방법임
+
+```kotlin
+fun lookForAlice(people: List<Person>) {
+    people.forEach(fun (person) {
+        if (person.name == "Alice") return
+        println("${person.name} is not Alice")
+    })
+}
+```

@@ -297,6 +297,5 @@ fun lookForAlice(people: List<Person>) {
 - 무명 함수 안에서 레이블이 붙지 않은 `return` 식은 무명 함수 자체를 반환시킨다.
 
 ## Sample Code Subject
-- using IntelliJ IDEA smart stepping
-- doing performance test using inline modifier
+- ~~doing performance test using inline modifier~~
 - doing performance test sequence vs normal collection

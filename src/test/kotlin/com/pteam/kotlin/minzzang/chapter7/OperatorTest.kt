@@ -1,6 +1,6 @@
 package com.pteam.kotlin.minzzang.chapter7
 
-import com.pteam.kotlin.minzznag.chapter7.JasT
+//import com.pteam.kotlin.minzznag.chapter7.JasT
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 

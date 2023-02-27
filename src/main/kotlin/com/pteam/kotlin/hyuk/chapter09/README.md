@@ -93,3 +93,52 @@ fun printSum(c: Collection<Int>) {
     }
 }
 ```
+
+### 실체화한 타입 파라미터를 사용한 함수 선언
+
+인라인 함수를 사용하면 실행 시점에 인라인 함수의 타입 인자를 알 수 있다. 이를 타입 '파라미터가 실체화된다'고 한다.
+```kotlin
+fun <T> isA(value: Any) = value is T // compile error (타입 인자가 실행 시점에 소거된다.)
+
+inline fun <reified T> isA(value: Any) = value is T // 성공 (타입 파라미터를 reified로 지정해야 한다.)
+```
+
+- Tip
+  - 자바 코드에서는 `reified` 타입 파라미터를 사용하는 `inline` 함수를 호출할 수 없다.
+    - 왜냐하면 자바는 인라인 함수를 보통 함수처럼 호출하기 때문이다.
+  - `inline` 함수를 서능 향상이 아니라 실체화한 타입 파라미터를 사용하기 위해 사용할 때도 있다.
+
+### 실체화한 타입 파라미터로 클래스 참조 대신
+
+실체화한 타입 파라미터를 사용해 `java.lang.Class` 타입 인자를 파라미터로 받는 API에 대한 코틀린 어댑터를 구현할 수 있다.
+
+ver1
+```kotlin
+val serviceImpl = ServiceLoader.load(Service::class.java) // ::class.java 는 코틀린 클래스에 대응하는 java.lang.Class 참조를 얻는 방법이다.
+```
+
+ver2
+```kotlin
+inline fun <reified T> loadService() {
+    return ServiceLoader.load(T::class.java)
+}
+
+val serviceImple = loadService<Service>()
+```
+
+### 실체화한 타입 파라미터의 제약
+
+실체화한 타입 파라미터에는 몇 가지 제약이 있다. 일부는 실체화의 개념으로 생기는 제약이고, 나머지는 코틀린이 실체화를 구현하는 방식에 의해 생기는 제약이다.
+
+- 실체화한 타입 파라미터를 사용할 수 있다.
+  - 타입 검사와 캐스팅 (`is`, `!is`, `as`, `as?`)
+  - 코틀린 리플랙션 API(`::class`)
+  - 코틀린 타입에 대응하는 `java.lang.Class`를 얻기
+  - 다른 함수를 호출할 때 타입 인자로 사용
+
+- 실체화한 타입 파라미터를 사용할 수 없다.
+  - 타입 파라미터 클래스의 인스턴스 생성하기
+  - 타입 파마리터 클래스의 동반 객체 메소드 호출하기
+  - 실체화한 타입 파라미터를 요구하는 함수를 호출하면서 실체화하지 않은 타입 파라미터로 받은 타입을 타입 인자로 넘기기
+  - 클래스, 프로퍼티, 인라인 함수가 아닌 함수의 타입 파라미터를 `reified`로 지정하기 (== 인라인 함수에만 `reified`사용 가능)
+

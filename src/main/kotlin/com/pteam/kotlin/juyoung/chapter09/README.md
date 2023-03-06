@@ -133,3 +133,143 @@ fun printSum(c: Collection<Int>) {
 
 printSum(listOf(1, 2, 3))
 ```
+
+### 실체화한 타입 파라미터를 사용한 함수 선언
+* 인라인 함수에서만 실체화한 타입 인자를 쓸 수 있는 이유
+  * 컴파일러는 인라인 함수의 본문을 구현한 바이트코드를 그 함수가 호출되는 모든 지점에 삽입
+  * 컴파일러는 실체화한 타입 인자를 사용해 인라인 함수를 호출하는 각 부분의 정확한 타입 인자를 알 수 있음
+  * 따라서 컴파일러는 타입 인자로 쓰인 구체적인 클래스를 참조하는 바이트코드를 생성해 삽입할 수 있음
+* 인라인 함수에는 실체화한 타입 파라미터가 여럿 있거나 실체화한 타입 파라미터와 셀체화하지 않은 타입 파라미터가 함께 있을 수 있음
+* 여기서 인라인으로 함수를 만드는 이유는 성능 향상이 아닌 실체화한 타입 파라미터를 사용하기 위함임
+```kotlin
+inline fun <reified T> isA(value: Any) = value is T
+println(isA<String>("abc"))
+println(isA<String>(123))
+
+// filterIsInstance 표준 라이브러리 함수 사용하기
+val items = listOf("one", 2, "three")
+println(items.filterIsInstance<String>())
+
+// filterIsInstance를 간단하게 정리한 버전
+inline fun <reified T> // reified 키워드는 이 타입 파라미터가 실행 시점에 지워지지 않음을 표시
+        Iterable<*>.filterIsInstance(): List<T> {    
+    val destination = mutableListOf<T>()
+    for(element in this) {
+        if(element is T) {  // 각 원소가 타입 인자로 지정한 클래스의 인스턴스인지 검사할 수 있음
+            destination.add(element)
+        }
+    }
+    return destination
+}
+```
+
+### 실체화한 타입 파라미터로 클래스 참조 대신
+* java.lang.Class타입 인자를 파라미터로 받는 API에 대한 코틀린 어댑터와 같은 경우 실체화한 타입 파라미터를 활용해 쉽게 호출
+```kotlin
+val serviceImpl = ServiceLoader.load(Service::class.java)
+
+val serviceImpl2 = loadService<Service>()
+inline fun <reified T> loadService() {
+    return ServiceLoader.load(T::class.java)
+}
+```
+
+### 실체화한 타입 파라미터의 제약
+* 실체화의 개념으로 인해 생기는 제약과 코틀린이 실체화를 구현하는 방식에 의해 생기는 제약(향후 완화될 가능성 있음)
+* 실체화한 티입 파라미터를 사용할 수 있는 경우
+  * 타입 검사와 캐스팅(is, !is, as, as?)
+  * 코틀린 리플렉션 API(::class)
+  * 코틀린 타입에 대응하는 java.lang.Class를 얻기(::class.java)
+  * 다른 함수를 호출할 때 타입 인자로 사용
+* 사용할 수 없는 경우
+  * 타입 파라미터 클래스의 인스턴스 생성
+  * 타입 파라미터 클래스의 동반 객체 메소드 호출
+  * 실체화한 타입 파라미터를 요구하는 함수를 호출하면서 실체화하지 않은 타입 파라미터로 받은 타입을 타입 인자로 넘기기
+  * 클래스, 프로퍼티, 인라인 함수가 아닌 함수의 타입 파라미터를 reified로 지정
+  * 실체화한 타입 파라미터를 인라인 함수에만 사용할 수 있으므로 실체화한 타입 파라미터를 사용하는 함수는 자신에게 전달되는 모든 람다와 함께 인라이닝됨
+
+## 변성: 제네릭과 하위 타입
+* 변성이란 기저 타입이 같고 타입 인자가 다른 여러 타입이 서로 어떤 관계가 있는지 설명하는 개념
+
+### 변성이 있는 이유: 인자를 함수에 넘기기
+* 원소 추가나 변경이 없는 경우에는 안전하지만, 추가/변경을 한다면 타입 불일치가 생겨 안전하지 않음
+
+### 클래스, 타입, 하위 타입
+* 타입과 클래스는 다름
+* 코틀린 클래스가 적어도 둘 이상의 타입을 구성 (ex: var x:String, var s:String?)
+* 제네릭 클래스는 무수히 많은 타입을 만들어 냄
+  * List는 타입이 아니지만 List<Int>, List<String?> 등 모두 제대로 된 타입
+* 타입 사이의 관계를 논하기 위해 하위 타입의 개념을 알아야 함
+  * 하위 타입: A타입에 B타입의 값을 넣어도 문제가 없으면 타입B는 타입A의 하위 타입
+    * Int는 Number의 하위 타입이지만 String의 하위 타입은 아님
+  * 한 타입이 다른 타입의 하위 타입인지가 중요한 이유 -> 컴파일러는 변수 대입이나 함수 인자 전달 시 하위 타입 검사를 매번 수행
+  * 어떤 인터페이스를 구현하는 클래스의 타입은 그 인터페이스의 하위 타입
+  * 널이 될 수 있는 타입은 하위 타입과 하위 클래스가 같이 않은 경우를 보여주는 예
+    * A는 A?의 하위 타입, Int는 Int?의 하위 타입. 그 반대는 하위 타입이 될 수 없음
+  * 무공변: 제네릭 타입을 인스턴스화할 때 타입 인자로 서로 다른 타입이 들어가면 인스턴스 타입 사이의 하위 타입 관계가 성립하지 않음
+  * 공변적: A가 B의 하위 타입이면 `List<A>`는 `List<B>`의 하위 타입. 이런 클래스나 인터페이스를 공변적이라 함
+```kotlin
+fun test(i: Int) {
+    val n: Number = i   // Int가 하위타입이라 컴파일됨
+  
+    fun f(s:String) {}
+    f(i)    // String의 하위 타입이 아니므로 컴파일 안 됨
+}
+```
+
+### 공변성: 하위 타입 관계를 유지
+* 코틀린에서 제네릭 클래스가 타입 파라미터에 대해 공변적임을 표시하려면 타입 파라미터 이름 앞에 out을 넣어야 함
+
+```kotlin
+interface Producer<out T> { // 클래스가 T에 대해 공변적이라고 선언
+    fun produce(): T
+}
+```
+
+* 클래스의 타입 파라미터를 공변적으로 만들면 함수 정의에 사용한 파라미터 타입과 타입 인자의 타입이 정확히 일치하지 않더라도 그 클래스의 인스턴스를 함수 인자나 반환값으로 사용할 수 있음
+```kotlin
+open class Animal {
+    fun feed() {}
+}
+
+class Herd<T: Animal> { // 이 타입의 파라미터를 무공변성으로 지정
+    val size: Int get() = {}
+    operator fun get(i: Int): T {}
+}
+
+fun feedAll(animals: Herd<Animal>) {
+    for (i in 0 until animals.size) {
+        animals[i].feed()
+    }
+}
+
+class Cat: Animal() {
+    fun cleanLitter() {}
+}
+
+fun takeCareOfCats(cats: Herd<Cat>) {
+    for (i in 0 until cats.size) {
+        cats[i].cleanLitter()
+    }
+
+    feedAll(cats)   // 타입 불일치 오류 발생
+}
+```
+* 모든 클래스를 공변적으로 만들 수 없음
+  * 타입 파라미터를 공변적으로 지정하면 클래스 내부에서 그 파라미터를 사용하는 방법을 제한함
+* 타입 안전성을 보장하기 위해 공변적 파라미터는 항상 아웃 위치에만 있어야 함 -> 클래스가 T타입의 값을 생산할 수는 있지만 소비할 순 없다는 뜻
+  * 공변성: 하위 타입 관계가 유지됨
+  * 사용 제한: T를 아웃 위치에서만 사용할 수 있음
+* T가 반환 타입이면 아웃 위치에 있고 값을 생산(produce)
+* T가 파라미터 타입에 쓰인다면 인 위치에 있고 값을 소비(consume)
+```kotlin
+class Herd<out T: Animal> {} // T는 공변적
+
+fun takeCareOfCats(cats: Herd<Cat>) {
+  for (i in 0 until cats.size) {
+    cats[i].cleanLitter()
+  }
+
+  feedAll(cats)   // 캐스팅 할 필요가 없음
+}
+```

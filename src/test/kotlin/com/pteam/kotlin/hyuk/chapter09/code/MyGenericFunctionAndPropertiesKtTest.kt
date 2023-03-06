@@ -1,5 +1,6 @@
 package com.pteam.kotlin.hyuk.chapter09.code
 
+import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 
@@ -31,6 +32,24 @@ internal class MyGenericFunctionAndPropertiesKtTest : DescribeSpec({
             val numbers = (1..50).toList()
 
             numbers.penultimate shouldBe 49
+        }
+    }
+
+    describe("unchecked cast") {
+        it("unchecked cast but success") {
+            val numbers = (1..10).toList()
+
+            val result = calculateSumParamWithStarProjectionCollection(numbers)
+
+            result shouldBe 55
+        }
+
+        it("unchecked test fail") {
+            val characters = ('a'..'z').toList()
+
+            shouldThrowExactly<ClassCastException> {
+                calculateSumParamWithStarProjectionCollection(characters)
+            }
         }
     }
 })

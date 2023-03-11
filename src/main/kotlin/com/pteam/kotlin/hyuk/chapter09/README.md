@@ -272,6 +272,4 @@ fun <T> copyData(source: MutableList<out T>, destination: MutableList<T>) {
 따라서 스타 프로젝션을 사용할 때는 값을 만들어내는 메소드만 호출할 수 있고 그 값의 타입에는 신경쓰지 말아야 한다.
 
 ## Subject Of Sample Code
-- 공변성 가진 제네릭 클래스 만들어보기 (ref - 9.3.3)
-- 반공변성 가진 제네릭 클래스 만들어보기 (ref - 9.3.4)
 - 스타 프로젝션 예시 작성 Validators (ref - 9.4.6)

@@ -126,3 +126,39 @@ data class Person(
     - 파라미터 타입에 `KClass<out 허용할 클래스 이름>`
   - 애노테이션이 제네릭 클래스를 인자로 받을 때
     - 파라미터 타입에 `KClass<out 허용할 클래스<*>>`
+
+## 10.2 리플렉션: 실행 시점에 코틀린 객체 내부 관찰
+
+리플렉션은 실행 시점에 객체의 프로퍼티와 메소드에 접근할 수 있게 해주는 방법이다.
+
+코틀린에서 리플렉션을 사용하려면 자바 리플렉션 API, 코틀린 리플렉션 API를 다뤄야한다.
+
+### 코틀린 리플렉션 API: KClass, KCallable, KFunction, KProperty
+
+![이미지](./IMG_0474.jpg)
+
+`KClass`는 클래스를 표현한다. `KClass`를 이용하면 클래스 안에 있는 모든 선언을 열거하고 각 선언에 접근하거나 클래스의 상위 클래스를 얻는 등의 작업이 가능하다.
+```kotlin
+val person = Person("Alice", 30)
+val kClass = person.javaClass.kotlin
+```
+
+`KCallable`은 함수와 프로퍼티를 아우르는 공통 상위 인터페이스다. 그 안에 `call` 메소드를 사용하면 함수나 프로퍼티의 게터를 호출할 수 있다.
+```kotlin
+fun foo(x: Int) = println(x)
+val kFunction = ::foo
+kFunction.call(42)
+```
+더 구체적인 메소드를 사용해 함수를 호출할 수 있다. `KFunction1<Int, Unit>`은 파라미터와 반환 값 타입 정보가 들어가 있다.
+- Tip
+  - `KFunction`의 인자 타입과 반환 타입을 모두 다 안다면 `invoke` 메소드를 호출하는 게 낫다. `call` 메소드는 모든 타입의 함수에 적용할 수 있는 일반적인 메소드지만 타입 안전성을 보장하지 않는다.
+
+`KProperty`를 이용해 프로퍼티 값을 얻을 수 있다.
+```kotlin
+var counter = 0
+val kProperty = ::counter
+kProperty.setter.class(21)
+kProperty.get()
+```
+- 최상위 프로퍼티는 `KProperty0` 인터페이스의 인스턴스로 표현된다. `KProperty0` 안에는 인자가 없는 `get` 메소드가 있다.
+- 맴버 프로퍼티는 `KProperty1` 인스턴스로 표현된다. 그 안에는 인자가 1개인 `get` 메소드가 들어있다. 인자로 프로퍼티를 얻고자 하는 객체 인스턴스를 넘겨야 한다.

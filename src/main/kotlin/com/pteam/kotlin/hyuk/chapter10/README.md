@@ -45,7 +45,7 @@ val folder = TemporaryFolder()
 
 - Tip
     - 자바에서 선언된 애노테이션을 사용해 프로퍼티에 붙이는 경우 기본적으로 프로퍼티 필드에 그 애너테이션이 붙는다.
-    - 자바와 달리 코틀린에서는 애노테이션 인자로 임의의 식을 허용한다. (?)
+    - 자바와 달리 코틀린에서는 애노테이션 인자로 임의의 식을 허용한다. (ref - https://www.baeldung.com/java-annotation-attribute-value-restrictions)
     - 코틀린은 코틀린으로 선언한 내용을 자바 바이트코드로 컴파일하는 방법과 코틀린 선언을 자바에 노출하는 방법을 제어하기 위한 애노테이션을 많이 제공한다.
 
 ### 애노테이션 선언
@@ -61,7 +61,7 @@ annotation class JsonName(val name: String)
 ```
 
 자바에서 선언한 애노테이션을 코틀린 구성 요소에 적용할 때는 `value`를 제외한 모든 인자에 대해 이름 붙인 인자 구문을 사용해야만 한다.
-코틀린도 자바 애노테이션에 정의된 `value`를 특별하게 취급한다. (?)
+코틀린도 자바 애노테이션에 정의된 `value`를 특별하게 취급한다. (ref - https://stackoverflow.com/questions/6571827/is-value-a-java-keyword)
 
 ### 메타애노테이션: 애노테이션을 처리하는 방법 제어
 

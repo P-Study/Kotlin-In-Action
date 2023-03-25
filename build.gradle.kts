@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.7.20")
 
     // test
     testImplementation ("io.kotest:kotest-runner-junit5:5.5.4")

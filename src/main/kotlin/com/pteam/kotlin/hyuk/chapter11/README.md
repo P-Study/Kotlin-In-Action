@@ -81,3 +81,64 @@ str should startWith("kot")
 // API
 assertTrue(str.startsWith("kot"))
 ```
+
+## 11.2 구조화된 API 구축: DSL에서 수신 객체 지정 DSL 사용
+
+### 수신 객체 지정 람다와 확장 함수 타입
+
+수신 객체 지정 람다를 사용하면 구조화된 API를 만들 때 도움이 된다.
+
+문법
+```kotlin
+String.(Int, Int) -> Unit
+```
+- `String` : 수신 객체 타입
+- `(Int, Int)` : 파라미터 타입
+- `Unit` : 반환 타입
+
+수신 객체 지정 람다는 확장 함수 타입(extension function type)이다.
+```kotlin
+// 확장 함수 타입
+val appendExcel : StringBuilder.() -> Unit = { this.append("!") }
+
+// 일반 한수 타입
+val excel : (StringBuilder) -> Unit = { it.append("!") }
+```
+
+### 수신 객체 지정 람다를 HTML 빌더 안에서 사용
+
+- 빌더의 장점
+  - 객체의 계층 구조를 선언적으로 정의할 수 있다. -> XML, UI 컴포넌트 레이아웃을 정의할 때 유용하다.
+```kotlin
+fun createSimpleTable() = creatHTML().
+    table {
+        tr {
+            td { +"cell" }
+        }
+    }
+```
+
+빌더에 수신 객체 지정 람다를 사용하면 이름 결정 규칙을 결정할 수 있다. 
+위 코드에서는 table 블록 안에서는 tr, tr 블록 안에서는 td를 사용할 수 있게 결정했다.
+
+수신 객체 지정 람다를 이용해 이름 결정 규칙 정하기
+```kotlin
+open class Tag
+
+class TABLE : Tag {
+    fun tr(init : TR.() -> Unit)
+}
+
+class TR : Tag {
+    fun td(init: TD.() -> Unit)
+}
+
+class TD : Tag
+```
+
+만약 빌더에 수신 객체 람다 대신 일반 람다를 사용하면 HTML 생성 코드 구문이 난잡해 질 것이다.
+왜냐하면 생성 메소드를 호출할 때 HTML `it`를 붙이거나 적절히 파라미터 이름을 정의해야 하기 때문이다.
+
+### 코틀린 빌더: 추상화와 재사용을 가능하게 하는 도구
+
+내부 DSL을 사용하면 일반 코드와 마찬가지로 반복되는 내부 DSL 코드 조각을 새 함수로 묶어서 재사용할 수 있다.

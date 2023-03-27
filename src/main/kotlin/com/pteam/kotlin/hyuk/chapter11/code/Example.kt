@@ -3,6 +3,7 @@ package com.pteam.kotlin.hyuk.chapter11.code
 import kotlinx.html.*
 import kotlinx.html.stream.createHTML
 
+//  Chapter 11.2
 fun buildStringV1(builderAction: (StringBuilder) -> Unit): String {
     val sb = StringBuilder()
     builderAction(sb)
@@ -52,5 +53,35 @@ fun DIV.dropdownButton(block: BUTTON.() -> Unit) = button(classes = "btn dropdow
 fun DIV.dropdownMenu(block: UL.() -> Unit) = ul("dropdown-menu", block)
 
 fun TagConsumer<String>.dropdown(
-    block: DIV.() -> Unit
+    block: DIV.() -> Unit,
 ): String = div(block = block)
+
+// Chapter 11.3
+class Greeter(val greeting: String) {
+    operator fun invoke(name: String) = "$greeting, $name"
+}
+
+data class Issue(
+    val id: String, val project: String, val type: String,
+    val priority: String, val description: String
+)
+
+class ImportantIssuePredicate(val project: String) : (Issue) -> Boolean {
+    override fun invoke(issue: Issue): Boolean {
+        return issue.project == project && issue.isImportant()
+    }
+
+    private fun Issue.isImportant(): Boolean {
+        return type == "Bug" && (priority == "Major" || priority == "Critical")
+    }
+}
+
+class DependencyHandler {
+    fun compile(coordinate: String) {
+        println("Added dependency on $coordinate")
+    }
+
+    operator fun invoke(body: DependencyHandler.() -> Unit) {
+        body()
+    }
+}

@@ -81,3 +81,132 @@ str should startWith("kot")
 // API
 assertTrue(str.startsWith("kot"))
 ```
+
+## 11.2 구조화된 API 구축: DSL에서 수신 객체 지정 DSL 사용
+
+### 수신 객체 지정 람다와 확장 함수 타입
+
+수신 객체 지정 람다를 사용하면 구조화된 API를 만들 때 도움이 된다.
+
+문법
+```kotlin
+String.(Int, Int) -> Unit
+```
+- `String` : 수신 객체 타입
+- `(Int, Int)` : 파라미터 타입
+- `Unit` : 반환 타입
+
+수신 객체 지정 람다는 확장 함수 타입(extension function type)이다.
+```kotlin
+// 확장 함수 타입
+val appendExcel : StringBuilder.() -> Unit = { this.append("!") }
+
+// 일반 함수 타입
+val excel : (StringBuilder) -> Unit = { it.append("!") }
+```
+
+### 수신 객체 지정 람다를 HTML 빌더 안에서 사용
+
+- 빌더의 장점
+  - 객체의 계층 구조를 선언적으로 정의할 수 있다. -> XML, UI 컴포넌트 레이아웃을 정의할 때 유용하다.
+```kotlin
+fun createSimpleTable() = creatHTML().
+    table {
+        tr {
+            td { +"cell" }
+        }
+    }
+```
+
+빌더에 수신 객체 지정 람다를 사용하면 이름 결정 규칙을 결정할 수 있다. 
+위 코드에서는 table 블록 안에서는 tr, tr 블록 안에서는 td를 사용할 수 있게 결정했다.
+
+수신 객체 지정 람다를 이용해 이름 결정 규칙 정하기
+```kotlin
+open class Tag
+
+class TABLE : Tag {
+    fun tr(init : TR.() -> Unit)
+}
+
+class TR : Tag {
+    fun td(init: TD.() -> Unit)
+}
+
+class TD : Tag
+```
+
+만약 빌더에 수신 객체 람다 대신 일반 람다를 사용하면 HTML 생성 코드 구문이 난잡해 질 것이다.
+왜냐하면 생성 메소드를 호출할 때 `it`를 붙이거나 적절히 파라미터 이름을 정의해야 하기 때문이다.
+
+### 코틀린 빌더: 추상화와 재사용을 가능하게 하는 도구
+
+내부 DSL을 사용하면 일반 코드와 마찬가지로 반복되는 내부 DSL 코드 조각을 새 함수로 묶어서 재사용할 수 있다.
+
+## 11.3 invoke 관례를 사용한 더 유연한 블록 중첩
+
+`invoke` 관례를 사용하면 객체를 함수처럼 호출할 수 있다.
+
+단, 이 기능은 일상적으로 사용하려고 만든 기능이 아니다. 따라서 남용하면 이해하기 어려운 코드가 될 수 있다. 하지만 DSL에서는 아주 유용할 때가 자주 있다.
+
+### invoke 관례: 함수처럼 호출할 수 있는 객체
+
+관례 : 특별한 이름이 붙은 함수를 일반 메소드 호출 구문으로 호출하지 않고 더 간단한 다른 구문으로 호출할 수 있게 지원하는 기능.
+
+`invoke` 관례 클래스 안 또는 확장 함수로 `operator` 변경자가 붙은 `invoke` 메소드를 정의하면 객체에 대해 괄호를 통해 `invoke` 함수를 호출할 수 있다.
+
+### invoke 관례와 함수형 타입
+
+일반적인 람다 호출 방식(람다 뒤에 괄호를 붙이는 방식)이 실제로는 `invoke` 관례를 적용한 것에 지나치지 않다.
+따라서 이를 알면 복잡한 람다를 여러 메소드로 분리하면서도 여전히 분리 전의 람다처럼 외부에서 호출할 수 있는 객체를 만들 수 있다.
+이런 접근 방법은 람다 본문에서 따로 분리해 낸 메소드가 영향을 끼치는 영역을 최소화할 수 있다는 장점이 있다.
+
+### DSL의 invoke 관례: 그레이들에서 의존관계 정의
+
+`invoke` 메서드를 사용하면 DSL API의 유연성을 훨씬 키울 수 있다.
+
+## 11.4 실전 코틀린 DSL
+
+코틀린의 확장, 중위 호출, 수신 객체 등을 이용해 실용적인 DSL을 구성해보자.
+
+### 중위 호출 연쇄: 테스트 프레임워크의 should
+
+중위 호출과 `object`로 정의한 싱글턴 객체 인스턴스를 조합하면 DSL에 상당히 복잡한 문법을 도입할 수 있고,
+그런 문법을 사용하면 DSL 구문을 깔끔하게 만들 수 있다.
+
+### 원시 타입에 대한 확장 함수 정의: 날짜 처리
+
+코틀린에서는 아무 타입이나 확장 함수의 수신 객체 타입이 될 수 있다. 따라서 원시 타입에 대한 확장 함수를
+정의하고 원시 타입 상수에 대해 그 확장 함수를 호출할 수 있다.
+
+### 맴버 확장 함수: SQL을 위한 내부 DSL
+
+맴버 확장 : 클래스 안에서 확장 함수와 확장 프로퍼티를 선언하는 것
+
+맴버 확장을 사용하면 메소드가 적용되는 범위를 제한할 수 있다.
+
+example (Exposed Framework)
+```kotlin
+class Table {
+    fun<T> Column<T>.primaryKey(): Column<T>
+    fun Column<Int>.autoIncrement(): Column<Int>
+}
+```
+
+`primaryKey()`, `autoIncrement()`는 Table 클래스 밖에서 호출할 수 없다.
+
+### 안코: 안드로이드 UI를 동적으로 생성하기
+
+수신 객체 지정 람다를 사용하면 UI 컴포넌트의 레이아웃을 잡을 때 깔끔한 코드를 작성할 수 있다.
+
+example (Anko)
+```kotlin
+fun Activity.showAreYouSureAlert(process: () -> Unit) {
+    alert(title = "Are you sure",
+        message = "Are you really sure?") {
+        positiveButton("Yes") { process() }
+        negativeButton("No") { cancel() }
+    }
+}
+```
+- `alert` 함수의 세 번째 인자, `positiveButton`, `negativeButton`의 인자로 수신 객체 지정 람다를 사용했다.

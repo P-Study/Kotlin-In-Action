@@ -25,18 +25,18 @@ class Chapter921RuntimeGeneric {
     /**
      * 제너릭 타입으로 캐스팅하기
      */
-    fun printSum(c: Collection<*>) {
-        val initList = c as? List<Int> ?: throw IllegalArgumentException("List is expected")
-        println(initList.sum())
-    }
+//    fun printSum(c: Collection<*>) {
+//        val initList = c as? List<Int> ?: throw IllegalArgumentException("List is expected")
+//        println(initList.sum())
+//    }
 
     /**
      * 실행 시점에 Exception이 발생한다
      */
-    fun callPrintSum() {
-        printSum(setOf(1, 2, 3))
-        printSum(listOf("A", "B", "C"))
-    }
+//    fun callPrintSum() {
+//        printSum(setOf(1, 2, 3))
+//        printSum(listOf("A", "B", "C"))
+//    }
 
     /**
      * 알려진 타입 인자를 사용해 타입 검사하기

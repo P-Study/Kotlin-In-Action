@@ -36,6 +36,15 @@ class CovariantHerd<out T : Animal>(private val animals: List<T>) {
     }
 }
 
+fun main() {
+    val a = CovariantHerd<Animal>(listOf())
+    val b = CovariantHerd<Cat>(listOf())
+
+    val list = arrayListOf<CovariantHerd<Animal>>()
+    list.add(a)
+    list.add(b)
+}
+
 fun feedToCovariantHerd(animals: CovariantHerd<Animal>) {
     for (i in 0 until animals.size) {
         animals[i].feed()

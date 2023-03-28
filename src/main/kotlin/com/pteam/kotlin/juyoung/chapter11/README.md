@@ -212,3 +212,162 @@ for (issue in listOf(i1, i2).filter(predicate)) {
 * 람다 본문에서 따로 분리해 낸 메소드가 영향을 끼치는 영역을 최소화할 수 있음
 
 ### DSL의 invoke 관례: 그레이들에서 의존관계 정의
+
+```kotlin
+class DependencyHandler {
+    // 일반적인 명령형 API 정의
+    fun compile(coordinate: String) {
+        println("Added dependency on $coordinate")
+    }
+
+    // invoke를 정의해 DSL 스타일 API를 제공
+    operator fun invoke(body: DependencyHandler.() -> Unit) { // invoke를 정의해 DSL 스타일 API를 제공
+        body() // this.body()
+    }
+}
+
+val dependencies = DependencyHandler()
+dependencies.compile("org.jetbrains.kotlin:kotlin-stdlib:1.0.0")
+
+dependencies {
+    compile("org.jetbrains.kotlin:kotlin-stdlib:1.0.0")
+}
+```
+
+* 두 번째 호출은 다음과 같이 변환됨
+
+```kotlin
+dependencies.invoke({
+    this.compile("org.jetbrains.kotlin:kotlin-stdlib:1.0.0")
+})
+```
+
+* dependencies를 함수처럼 호출하면 람다를 인자로 넘김
+* 람다의 타입은 확장 함수 타입(수신 객체를 지정한 함수 타입)
+* 지정한 수신 객체 타입은 DependencyHandler
+* invoke 메소드는 이 수신 객체 지정 람다를 호출
+* invoke 메소드가 DependencyHandler의 메소드이므로 이 메소드 내부에서 this는 DependencyHandler 객체
+* 따라서 invoke 안에서 DependencyHandler 타입의 객체를 따로 명시하지 않고 compile()을 호출할 수 있음
+
+## 실전 코틀린 DSL
+
+### 중위 호출 연쇄: 테스트 프레임워크의 should
+
+* 깔끔한 구문은 내부 DSL의 핵심 특징
+* 깔끔하게 만드려면 코드에 쓰이는 기호의 수를 줄여야함
+
+```kotlin
+infix fun <T> .should(matcher: Matcher<T>) = matcher.test(this)
+
+interface Matcher<T> {
+    fun test(value: T)
+}
+
+class startWith(val prefix: String) : Matcher<String> { // 클래스의 첫 글자가 대문자가 아닌 케이스: DSL 에서는 종종 명명규칙을 벗어나야 할 때가 있음
+    override fun test(value: String) {
+        if (!value.startsWith(prefix)) {
+            throw AssertionError("String $value does not start with $prefix")
+        }
+    }
+}
+
+"kotlin" should startWith("kot")
+```
+
+```kotlin
+object start
+
+infix fun String.should(x: start): StartWrapper = StartWrapper(this)
+
+class StartWrapper(val value: String) {
+    infix fun with(prefix: String) = if (!value.startsWith(prefix)) {
+        throw AssertionError("String $value does not start with $prefix")
+    } else {
+        Unit
+    }
+}
+
+"kotlin" should start with "kot"
+```
+
+* start 객체는 함수에 데이터를 넘기기 위해서가 아니라 DSL의 문법을 정의하기 위해 사용
+* start를 인자로 넘겨서 적절한 함수를 선택하고, 그 함수를 호출한 결과로 startWrapper 인스턴스를 받을 수 있음
+* startWrapper 클래스에는 단언문의 검사를 실행하기 위해 필요한 값을 인자로 받는 with라는 멤버가 있음
+* 중위호출과 object로 정의한 싱글턴 객체 인스턴스를 조합하면 DSL에 복잡한 문법을 도입할 수 있음
+
+### 원시 타입에 대한 확장 함수 정의: 날짜 처리
+
+```kotlin
+import java.time.Period
+import java.time.LocalDate
+
+val Int.days: Period
+    get() = Period.ofDays(this) // this는 상수의 값을 가리킴
+
+val Period.ago: LocalDate
+    get() = LocalDate.now() - this  // 연산자 구문을 사용해 LocalDate.minus를 호출
+
+val Period.fromNow: LocalDate
+    get() = LocalDate.now() + this
+
+println(1.days.ago)
+println(1.days.fromNow)
+```
+
+* days는 Int 타입의 확장 프로퍼티
+* LocalDate라는 JDK 클래스에는 코틀린의 -는 연산자 관례와 일치하는 인자가 하나뿐인 minus 메소드가 들어가 있음 (public LocalDate minus(TemporalAmount var1))
+* 따라서 -, + 는 LocalDate 라는 JDK 클래스에 있는 관례에 의해 minus, plus 메소드가 호출되는 것(코틀린에서 제공하는 확장함수가 호출되는 것이 아님)
+
+### 멤버 확장 함수: SQL을 위한 내부 DSL
+
+* 클래스안에서 확장함수와 확장프로퍼티를 선언
+* 정의한 확장 함수나 확장프로퍼티는 그들이 선언된 클래스의 멤버인 동시에 그들이 확장하는 다른 타입의 멤버이기도 함
+* 이러한 함수나 프로퍼티를 `멤버 확장` 이라고 부름
+
+```kotlin
+// 익스포즈드에서 테이블 선언
+object Country : Table() {
+    val id = integer("id").autoIncrement().primaryKey()
+    val name = varchar("name", 50)
+}
+
+// Table 밖에서는 이 함수들을 호출할 수 없음
+class Table {
+    fun integer(name: String): Column<Int>
+    fun varchar(name: String, length: Int): Column<String>
+    fun <T> Column<T>.primaryKey(): Column<T>    // 기본키
+    fun Column<Int>.autoIncrement(): Column<Int> // 숫자 타입의 컬럼만 자동 증가 컬럼으로 설정
+    //...
+}
+
+```
+
+* 멤버확장으로 정의해야하는 이유는 메소드가 적용되는 범위를 제한하기 위함
+* 대신 제한된 범위로 인해 멤버확장은 확장성이 떨어진다는 단점도 있음
+
+### 안코: 안드로이드 UI를 동적으로 생성하기
+
+```kotlin
+// Anko를 사용해 안드로이드 경고창 표시하기
+fun Activity.showAreYouSureAlert(process: () -> Unit) {
+    alert(
+        title = "Are you sure?",
+        message = "Are you really sure?"
+    ) {
+        positiveButton("Yes") { process() } // this 생략 (AlertDialogBuilder)
+        negativeButton("No") { cancel() }
+    }
+}
+
+// alert API의 선언
+fun Context.alert(
+    message: String,
+    title: String,
+    init: AlertDialogBuilder.() -> Unit
+)
+
+class AlertDialogBuilder {
+    fun positiveButton(text: String, callback: DialogInterface.() -> Unit)
+    fun negativeButton(text: String, callback: DialogInterface.() -> Unit)
+}
+```

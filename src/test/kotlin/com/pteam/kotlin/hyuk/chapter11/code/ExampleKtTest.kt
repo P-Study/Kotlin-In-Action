@@ -81,5 +81,20 @@ internal class ExampleKtTest : DescribeSpec() {
                 }
             }
         }
+
+        describe("DSL 만들기") {
+            it("kotest DSL 만들기 ver1") {
+                "kotlin" myShould MyStartWith("kot")
+            }
+
+            it("kotest DSL 만들기 ver2") {
+                "kotlin" myShould myStart with "kot"
+            }
+
+            it("날짜 처리") {
+                val ago = 1.days.ago
+                print(ago)
+            }
+        }
     }
 }

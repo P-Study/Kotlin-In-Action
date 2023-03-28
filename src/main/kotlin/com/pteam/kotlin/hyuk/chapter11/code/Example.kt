@@ -2,6 +2,9 @@ package com.pteam.kotlin.hyuk.chapter11.code
 
 import kotlinx.html.*
 import kotlinx.html.stream.createHTML
+import java.lang.AssertionError
+import java.time.LocalDate
+import java.time.Period
 
 //  Chapter 11.2
 fun buildStringV1(builderAction: (StringBuilder) -> Unit): String {
@@ -85,3 +88,39 @@ class DependencyHandler {
         body()
     }
 }
+
+// Chapter 11.4
+infix fun <T> T.myShould(matcher: MyMatcher<T>) = matcher.test(this)
+
+interface MyMatcher<T> {
+    fun test(value: T)
+}
+
+class MyStartWith(val prefix: String) : MyMatcher<String> {
+    override fun test(value: String) {
+        if (!value.startsWith(prefix))
+            throw AssertionError("String $value does not start with $prefix")
+    }
+}
+
+object myStart
+
+infix fun String.myShould(x: myStart): MyStartWrapper = MyStartWrapper(this)
+
+class MyStartWrapper(val value: String) {
+    infix fun with(prefix: String) =
+        if (!value.startsWith(prefix))
+            throw AssertionError("String does not start with $prefix: $value")
+        else
+            Unit
+}
+
+val Int.days: Period
+    get() = Period.ofDays(this)
+
+val Period.ago: LocalDate
+    get() = LocalDate.now() - this
+
+val Period.fromNow: LocalDate
+    get() = LocalDate.now() + this
+

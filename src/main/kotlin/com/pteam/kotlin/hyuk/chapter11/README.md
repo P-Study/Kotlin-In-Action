@@ -164,3 +164,49 @@ class TD : Tag
 ### DSL의 invoke 관례: 그레이들에서 의존관계 정의
 
 `invoke` 메서드를 사용하면 DSL API의 유연성을 훨씬 키울 수 있다.
+
+## 11.4 실전 코틀린 DSL
+
+코틀린의 확장, 중위 호출, 수신 객체 등을 이용해 실용적인 DSL을 구성해보자.
+
+### 중위 호출 연쇄: 테스트 프레임워크의 should
+
+중위 호출과 `object`로 정의한 싱글턴 객체 인스턴스를 조합하면 DSL에 상당히 복잡한 문법을 도입할 수 있고,
+그런 문법을 사용하면 DSL 구문을 깔끔하게 만들 수 있다.
+
+### 원시 타입에 대한 확장 함수 정의: 날짜 처리
+
+코틀린에서는 아무 타입이나 확장 함수의 수신 객체 타입이 될 수 있다. 따라서 원시 타입에 대한 확장 함수를
+정의하고 원시 타입 상수에 대해 그 확장 함수를 호출할 수 있다.
+
+### 맴버 확장 함수: SQL을 위한 내부 DSL
+
+맴버 확장 : 클래스 안에서 확장 함수와 확장 프로퍼티를 선언하는 것
+
+맴버 확장을 사용하면 메소드가 적용되는 범위를 제한할 수 있다.
+
+example (Exposed Framework)
+```kotlin
+class Table {
+    fun<T> Column<T>.primaryKey(): Column<T>
+    fun Column<Int>.autoIncrement(): Column<Int>
+}
+```
+
+`primaryKey()`, `autoIncrement()`는 Table 클래스 밖에서 호출할 수 없다.
+
+### 안코: 안드로이드 UI를 동적으로 생성하기
+
+수신 객체 지정 람다를 사용하면 UI 컴포넌트의 레이아웃을 잡을 때 깔끔한 코드를 작성할 수 있다.
+
+example (Anko)
+```kotlin
+fun Activity.showAreYouSureAlert(process: () -> Unit) {
+    alert(title = "Are you sure",
+        message = "Are you really sure?") {
+        positiveButton("Yes") { process() }
+        negativeButton("No") { cancel() }
+    }
+}
+```
+- `alert` 함수의 세 번째 인자, `positiveButton`, `negativeButton`의 인자로 수신 객체 지정 람다를 사용했다.

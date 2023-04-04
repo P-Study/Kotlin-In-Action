@@ -1,6 +1,8 @@
 package com.pteam.kotlin.hyuk.appendix.code
 
 import io.kotest.core.spec.style.DescribeSpec
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class ExampleTest : DescribeSpec(){
     init {
@@ -36,6 +38,12 @@ class ExampleTest : DescribeSpec(){
         describe("async") {
             it("async를 이용하면 스레드 하나로 스레드 병렬처리 비슷한 속도를 낼 수 있다.") {
                 sumAll()
+            }
+        }
+
+        describe("suspend function") {
+            it("custom suspend function 만들기") {
+                GlobalScope.launch { yieldThreeTimes() }
             }
         }
     }
